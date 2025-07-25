@@ -1,0 +1,9 @@
+version: '3.8'
+services:
+  streamlit:
+    build: .
+    ports:
+      - "8502:8501"
+    environment:
+      - DUNE_API_KEY=${DUNE_API_KEY}
+      - DUNE_QUERY_ID=${DUNE_QUERY_ID} 
