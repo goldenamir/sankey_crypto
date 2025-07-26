@@ -2,6 +2,7 @@ import os
 import streamlit as st
 import requests
 import plotly.graph_objects as go
+import collections
 
 # Read environment variables
 DUNE_API_KEY = os.getenv('DUNE_API_KEY')
@@ -47,21 +48,33 @@ def build_sankey_data(rows):
     return label_list, source_indices, target_indices, values
 
 rows = fetch_dune_data()
-label_list, source_indices, target_indices, values = build_sankey_data(rows)
 
-fig = go.Figure(data=[go.Sankey(
-    node=dict(
-        pad=15,
-        thickness=20,
-        line=dict(color="black", width=0.5),
-        label=label_list
-    ),
-    link=dict(
-        source=source_indices,
-        target=target_indices,
-        value=values
-    )
-)])
+# Get all unique tokens for selection
+tokens = sorted(set([row['source'] for row in rows] + [row['target'] for row in rows]))
+selected_token = st.selectbox("Select a token to view inflows/outflows:", tokens)
 
-fig.update_layout(title_text="Coin-to-Coin Volume Flows", font_size=10)
-st.plotly_chart(fig, use_container_width=True) 
+# Inflows: where selected_token is the target
+inflow_rows = [row for row in rows if row['target'] == selected_token]
+if inflow_rows:
+    st.subheader(f"Inflows to {selected_token}")
+    label_list, source_indices, target_indices, values = build_sankey_data(inflow_rows)
+    fig = go.Figure(data=[go.Sankey(
+        node=dict(label=label_list, pad=15, thickness=20, line=dict(color="black", width=0.5)),
+        link=dict(source=source_indices, target=target_indices, value=values)
+    )])
+    st.plotly_chart(fig, use_container_width=True)
+else:
+    st.info(f"No inflows to {selected_token} found.")
+
+# Outflows: where selected_token is the source
+outflow_rows = [row for row in rows if row['source'] == selected_token]
+if outflow_rows:
+    st.subheader(f"Outflows from {selected_token}")
+    label_list, source_indices, target_indices, values = build_sankey_data(outflow_rows)
+    fig = go.Figure(data=[go.Sankey(
+        node=dict(label=label_list, pad=15, thickness=20, line=dict(color="black", width=0.5)),
+        link=dict(source=source_indices, target=target_indices, value=values)
+    )])
+    st.plotly_chart(fig, use_container_width=True)
+else:
+    st.info(f"No outflows from {selected_token} found.") 
