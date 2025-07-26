@@ -9,6 +9,40 @@ import random
 DUNE_API_KEY = os.getenv('DUNE_API_KEY')
 DUNE_QUERY_ID = os.getenv('DUNE_QUERY_ID')
 
+# Custom CSS for dark black font without shadow
+st.markdown("""
+<style>
+    .main .block-container h1 {
+        color: #000000 !important;
+        text-shadow: none !important;
+        font-weight: bold !important;
+    }
+    .stSelectbox label {
+        color: #000000 !important;
+        text-shadow: none !important;
+        font-weight: bold !important;
+    }
+    .stSubheader {
+        color: #000000 !important;
+        text-shadow: none !important;
+        font-weight: bold !important;
+    }
+    /* Force black text in Plotly charts */
+    .js-plotly-plot .plotly .main-svg text {
+        fill: #000000 !important;
+        stroke: none !important;
+        text-shadow: none !important;
+    }
+    /* Override any Plotly text styling */
+    .plotly .sankey text {
+        fill: #000000 !important;
+        stroke: none !important;
+        text-shadow: none !important;
+        font-weight: bold !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 st.title('CryptoFlow')
 
 if not DUNE_API_KEY or not DUNE_QUERY_ID:
@@ -58,6 +92,9 @@ selected_token = st.selectbox("Select a token to view inflows/outflows:", tokens
 
 # Inflows: where selected_token is the target
 inflow_rows = [row for row in rows if row['target'] == selected_token]
+# Limit to top 10 inflows by value
+inflow_rows = sorted(inflow_rows, key=lambda x: x['value'], reverse=True)[:10]
+
 if inflow_rows:
     st.subheader(f"Inflows to {selected_token}")
     label_list, source_indices, target_indices, values = build_sankey_data(inflow_rows)
@@ -83,15 +120,35 @@ if inflow_rows:
             value=values
         )
     )])
+
+    # Set black text color for all text elements in the figure
+    fig.update_layout(
+        font=dict(color="black", size=14),
+        title_font_color="black",
+        plot_bgcolor='white',
+        paper_bgcolor='white'
+    )
+    # Force text styling
+    fig.update_traces(textfont=dict(color="black"))
     st.plotly_chart(fig, use_container_width=True)
 else:
     st.info(f"No inflows to {selected_token} found.")
 
 # Outflows: where selected_token is the source
 outflow_rows = [row for row in rows if row['source'] == selected_token]
+# Limit to top 10 outflows by value
+outflow_rows = sorted(outflow_rows, key=lambda x: x['value'], reverse=True)[:10]
+
 if outflow_rows:
     st.subheader(f"Outflows from {selected_token}")
     label_list, source_indices, target_indices, values = build_sankey_data(outflow_rows)
+
+    # Nice color palette for outflows
+    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', 
+              '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
+
+    # Cycle through colors
+    node_colors = [colors[i % len(colors)] for i in range(len(label_list))]
 
     # Color the links based on source node
     link_colors = [node_colors[source_indices[i]] for i in range(len(source_indices))]
@@ -111,6 +168,16 @@ if outflow_rows:
             color=link_colors  # Add colorful links
         )
     )])
+    
+    # Set black text color for all text elements in the figure
+    fig.update_layout(
+        font=dict(color="black", size=14),
+        title_font_color="black",
+        plot_bgcolor='white',
+        paper_bgcolor='white'
+    )
+    # Force text styling
+    fig.update_traces(textfont=dict(color="black"))
     st.plotly_chart(fig, use_container_width=True)
 else:
     st.info(f"No outflows from {selected_token} found.") 
