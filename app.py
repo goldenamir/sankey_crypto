@@ -41,6 +41,20 @@ st.markdown("""
         font-weight: bold !important;
     }
 </style>
+<script>
+// Remove any undefined text
+function removeUndefined() {
+    const elements = document.querySelectorAll('*');
+    elements.forEach(element => {
+        if (element.textContent && element.textContent.includes('undefined')) {
+            element.textContent = element.textContent.replace(/undefined/g, '');
+        }
+    });
+}
+// Run on page load and periodically
+document.addEventListener('DOMContentLoaded', removeUndefined);
+setInterval(removeUndefined, 1000);
+</script>
 """, unsafe_allow_html=True)
 
 st.title('CryptoFlow')
@@ -132,7 +146,7 @@ if inflow_rows:
     fig.update_traces(textfont=dict(color="black"))
     st.plotly_chart(fig, use_container_width=True)
 else:
-    st.info(f"No inflows to {selected_token} found.")
+    st.warning(f"No inflows to {selected_token} found in the data.")
 
 # Outflows: where selected_token is the source
 outflow_rows = [row for row in rows if row['source'] == selected_token]
@@ -180,4 +194,4 @@ if outflow_rows:
     fig.update_traces(textfont=dict(color="black"))
     st.plotly_chart(fig, use_container_width=True)
 else:
-    st.info(f"No outflows from {selected_token} found.") 
+    st.warning(f"No outflows from {selected_token} found in the data.") 
