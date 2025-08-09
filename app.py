@@ -74,8 +74,15 @@ def parse_crypto_symbol(symbol):
     if not symbol or len(symbol) < 4:
         return None, None
     
+    # there is base and qoute currency
+    # base currency is the currency that is being traded
+    # quote currency is the currency that is being used to price the base currency
+    # for example, if the symbol is BTCUSDT, then BTC is the base currency and USDT is the quote currency
+    # if the symbol is ETHUSDT, then ETH is the base currency and USDT is the quote currency
+    # if the symbol is USDTBTC, then USDT is the base currency and BTC is the quote currency
+    
     # Common quote currencies
-    quote_currencies = ['USDT', 'USDC', 'BUSD', 'BTC', 'ETH', 'BNB', 'ADA', 'DOT', 'LINK', 'XRP']
+    quote_currencies = ['USDT', 'USDC', 'BUSD', 'BTC', 'ETH', 'BNB', 'ADA', 'DOT', 'LINK', 'XRP','SUI']
     
     # Try to find quote currency
     for quote in quote_currencies:
